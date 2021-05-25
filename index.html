@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数据表格</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <!-- 引入element样式 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.0/theme-chalk/index.css" rel="stylesheet"/>
+    <!--引入外部样式-->
+    <link rel="stylesheet" href="./css/index.css"/>
+
+</head>
+<body>
+<div id="indexApp">
+    <el-container>
+        <el-header>
+
+            <el-row :gutter="20">
+                <el-col :span="20">
+                    <div class="grid-content bg-purple">数据表格</div>
+                </el-col>
+                <el-col :span="4">
+                    <div class="grid-content bg-purple">你好, {{ userName }}
+                        <el-button type="danger" size="mini" @click="quit">退出</el-button>
+                    </div>
+                </el-col>
+            </el-row>
+
+        </el-header>
+        <el-container>
+            <el-aside width="200px">
+
+                <!--导航菜单-->
+                <el-menu
+                        default-active="1"
+                        class="el-menu-vertical-demo">
+                    <el-menu-item index="1" @click="jumpToIndex">
+                        <i class="el-icon-s-marketing"></i>
+                        <span slot="title" @click="jumpToIndex">数据表格</span>
+                    </el-menu-item>
+                    <el-menu-item index="2" @click="jumpToApplicationInfo">
+                        <i class="el-icon-s-order"></i>
+                        <span slot="title" @click="jumpToApplicationInfo">申请记录</span>
+                    </el-menu-item>
+                    <el-menu-item index="3" :hidden="isSuperuser" @click="jumpToLog">
+                        <i class="el-icon-info"></i>
+                        <span slot="title" @click="jumpToLog">操作日志</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-aside>
+            <el-container>
+                <el-main>
+
+                    <!--查询表单-->
+                    <el-form :inline="true" class="demo-form-inline" :model="queryForm">
+                        <el-form-item label="手机号">
+                            <el-input suffix-icon="el-icon-phone-outline
+" placeholder="手机号" v-model="queryForm.phone" @change="getQueryDataFromBack"></el-input>
+                        </el-form-item>
+                        <el-form-item label="部门">
+                            <el-select v-model="queryForm.department" placeholder="请选择" @change="getQueryDataFromBack">
+                                <el-option
+                                        v-for="item in departmentOptions"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="质量级">
+                            <el-select v-model="queryForm.qualityLevel" placeholder="请选择" @change="getQueryDataFromBack">
+                                <el-option
+                                        v-for="item in qualityLevelOptions"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="属性">
+                            <el-input suffix-icon="el-icon-edit-outline" placeholder="属性" v-model="queryForm.attribute"
+                                      @change="getQueryDataFromBack"></el-input>
+                        </el-form-item>
+                        <el-form-item label="可用">
+                            <el-select v-model="queryForm.active" placeholder="请选择" @change="getQueryDataFromBack">
+                                <el-option
+                                        v-for="item in activeOptions"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="使用状况">
+                            <el-select v-model="queryForm.orderCount" placeholder="请选择" @change="getQueryDataFromBack">
+                                <el-option
+                                        v-for="item in orderCountOptions"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="导出时间">
+                            <el-date-picker
+                                    v-model="queryForm.lastUsedTime"
+                                    @change="getQueryDataFromBack"
+                                    type="daterange"
+                                    range-separator="至"
+                                    start-placeholder="开始日期"
+                                    end-placeholder="结束日期">
+                            </el-date-picker>
+                        </el-form-item>
+                        <el-form-item label="取号数量">
+                            <el-input suffix-icon="el-icon-phone-outline
+" placeholder="取号数量" v-model="queryForm.limit"></el-input>
+                        </el-form-item>
+                        <el-form-item label="使用记录">
+                            <el-input suffix-icon="el-icon-phone-outline
+" placeholder="使用记录" v-model="queryForm.usedHistory"></el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" icon="el-icon-search" @click="getQueryDataFromBack">查询</el-button>
+                            <el-button icon="el-icon-download" @click="downloadApplyReserveToBack">下载申请</el-button>
+                            <el-button icon="el-icon-upload2" :disabled="isSuperuser" @click="switchDialogVisible">DATA文件上传
+                            </el-button>
+                            <el-button icon="el-icon-upload2" :disabled="isSuperuser" @click="switchDialogVisible2">回执文件上传
+                            </el-button>
+                        </el-form-item>
+                    </el-form>
+
+                    <!--数据表格-->
+                    <el-table
+                            :data="currentPageData"
+                            border
+                            style="width: 100%; margin: 0; padding: 0; margin-bottom: 10px;">
+                        <el-table-column prop="id" label="ID" width="130"></el-table-column>
+                        <el-table-column prop="phone" label="手机号码" width="180">
+                            <template slot-scope="scope">
+                                <el-tooltip :content="scope.row.usedHistory" placement="top">
+                                    <p>{{ scope.row.phone }}</p>
+                                </el-tooltip>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="department" label="部门" width="130"></el-table-column>
+                        <el-table-column prop="qualityLevel" label="质量级别" width="80"></el-table-column>
+                        <el-table-column prop="attribute" label="属性"></el-table-column>
+                        <el-table-column prop="createTime" label="业务时间" width="180"></el-table-column>
+                        <el-table-column prop="lastUsedTime" label="最后导出时间" width="180"></el-table-column>
+                        <el-table-column prop="orderCount" label="使用次数" width="80"></el-table-column>
+                        <el-table-column prop="active" label="可用" width="80"></el-table-column>
+                        <el-table-column prop="status" label="状态" width="80"></el-table-column>
+                    </el-table>
+
+                    <!--分页器-->
+                    <el-pagination
+                            style="margin-left: 100px;"
+                            background
+                            layout="prev, pager, next"
+                            :page-size="pagesize"
+                            :current-page="currentpage"
+                            :total="total"
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange">
+                    </el-pagination>
+
+                    <!--上传弹窗dialog-->
+                    <el-dialog title="DATA文件上传" :visible.sync="dialogVisible" @close="resetParams">
+                        <el-upload
+                                class="upload-demo"
+                                drag
+                                :action="uploadFileUrl"
+                                style="text-align: center;"
+                                :on-success="fileUploadOnSuccess"
+                        >
+                            <i class="el-icon-upload"></i>
+                            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                        </el-upload>
+
+                        <el-form :label-position="labelPosition" label-width="80px" :model="uploadParams"
+                                 :rules="uploadParamsRules" style="margin-top: 20px;" ref="uploadParams">
+                            <el-form-item label="手机列名" prop="phoneCol">
+                                <el-input v-model="uploadParams.phoneCol"></el-input>
+                            </el-form-item>
+                            <el-form-item label="部门" prop="department">
+                                <el-select v-model="uploadParams.department" placeholder="请选择" style="width: 100%">
+                                    <el-option
+                                            v-for="item in departmentOptions"
+                                            :key="item.value"
+                                            :label="item.label"
+                                            :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="属性列名" prop="attributeCol">
+                                <el-input v-model="uploadParams.attributeCol1" style="width:24.5%;"></el-input>
+                                <el-input v-model="uploadParams.attributeCol2" style="width:24.5%;"></el-input>
+                                <el-input v-model="uploadParams.attributeCol3" style="width:24.5%;"></el-input>
+                                <el-input v-model="uploadParams.attributeCol4" style="width:24.5%;"></el-input>
+                            </el-form-item>
+                            <el-form-item label="业务日期" prop="createTime">
+                                <el-date-picker
+                                        style="width: 100%;"
+                                        v-model="uploadParams.createTime"
+                                        type="datetime"
+                                        placeholder="选择日期时间"
+                                        align="center"
+                                        :picker-options="pickerOptions">
+                                </el-date-picker>
+                            </el-form-item>
+                        </el-form>
+
+                        <div slot="footer" class="dialog-footer">
+                            <el-button @click="dialogVisible = false">取 消</el-button>
+                            <el-button type="primary" @click="uploadCheck('uploadParams')">确 定</el-button>
+                        </div>
+                    </el-dialog>
+
+                    <!--回执上传弹窗-->
+                    <el-dialog title="回执文件上传" :visible.sync="dialogVisible2" @close="resetParams">
+                        <el-upload
+                                class="upload-demo"
+                                drag
+                                :action="responseFileUrl"
+                                style="text-align: center;"
+                                :on-success="fileUploadOnSuccess"
+                        >
+                            <i class="el-icon-upload"></i>
+                            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                        </el-upload>
+
+                        <el-form :label-position="labelPosition" label-width="80px" :model="responseParams"
+                                 style="margin-top: 20px;" ref="responseParams">
+                            <el-form-item label="手机列名" prop="phoneCol">
+                                <el-input v-model="responseParams.phoneCol"></el-input>
+                            </el-form-item>
+                            <el-form-item label="结果列名" prop="resultCol">
+                                <el-input v-model="responseParams.resultCol"></el-input>
+                            </el-form-item>
+                        </el-form>
+
+                        <div slot="footer" class="dialog-footer">
+                            <el-button @click="dialogVisible2 = false">取 消</el-button>
+                            <el-button type="primary" @click="responseUploadParams">确 定</el-button>
+                        </div>
+                    </el-dialog>
+
+                </el-main>
+                <el-footer>数据管理平台</el-footer>
+            </el-container>
+        </el-container>
+    </el-container>
+</div>
+</body>
+</html>
+
+
+<!--引入vue-->
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.12/vue.js"></script>
+<!-- 引入element组件库 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.0/index.js"></script>
+<!--引入axios-->
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<!--引入外部js-->
+<script src="./js/index.js"></script>

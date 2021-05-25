@@ -1,0 +1,66 @@
+.el-header, .el-footer {
+    background-color: #B3C0D1;
+    color: #333;
+    text-align: center;
+    line-height: 60px;
+}
+
+.el-aside {
+    background-color: #D3DCE6;
+    color: #333;
+    text-align: center;
+    line-height: 200px;
+}
+
+.el-main {
+    background-color: #E9EEF3;
+    color: #333;
+    /*text-align: center;*/
+    line-height: 20px;
+}
+
+html,
+body,
+#logApp,
+.el-container {
+    margin: 0px;
+    padding: 0px;
+    height: 100%;
+}
+
+.el-container:nth-child(5) .el-aside,
+.el-container:nth-child(6) .el-aside {
+    line-height: 260px;
+}
+
+.el-container:nth-child(7) .el-aside {
+    line-height: 320px;
+}
+
+.el-table .login-row {
+    background: oldlace;
+}
+
+.el-table .query-row {
+    background: transparent;
+}
+
+.el-table .apply-row {
+    background: #F0F9EB;
+}
+
+.el-table .check-row {
+    background: #ECF5FF;
+}
+
+.el-table .log-row {
+    background: #F4F4F5;
+}
+
+.el-table .download-row {
+    background: #FEF0F0;
+}
+
+.el-table .upload-row {
+    background: #FEF0F0;
+}

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <!-- 引入element样式 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.0/theme-chalk/index.css" rel="stylesheet"/>
+    <!--引入外部样式-->
+    <link rel="stylesheet" href="./css/login.css"/>
+
+    <style>
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        video {
+            position: fixed;
+            right: 0px;
+            bottom: 0px;
+            min-width: 100%;
+            min-height: 100%;
+            height: auto;
+            width: auto;
+            /*加滤镜*/
+            /*filter: blur(15px); //背景模糊设置*/
+            /*-webkit-filter: grayscale(60%);*/
+            /*filter:grayscale(60%); //背景灰度设置*/
+            /*z-index:-11*/
+        }
+
+        source {
+            min-width: 100%;
+            min-height: 100%;
+            height: auto;
+            width: auto;
+        }
+
+        .input-val {
+            width: 200px;
+            height: 32px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        #canvas {
+            vertical-align: middle;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+
+        .btn {
+            display: block;
+            margin-top: 20px;
+            height: 32px;
+            width: 100px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #457adb;
+            border: none;
+            border-radius: 50px;
+        }
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-header>数据管理</el-header>
+        <el-main style="margin:0;padding:0;">
+            <!--            <video id="v1" autoplay loop muted>-->
+            <!--                <source :src="backName" type="video/mp4"/>-->
+            <!--            </video>-->
+            <el-form label-width="100px" :model="loginForm" :rules="loginRules" ref="loginForm"
+                     style="width: 50%; margin-left: 25%; margin-top: 10%;">
+                <el-form-item label="用户名" prop="userName">
+                    <el-input type="text" autocomplete="off" v-model="loginForm.userName"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="password">
+                    <el-input type="password" autocomplete="off" v-model="loginForm.password"></el-input>
+                </el-form-item>
+                <el-form-item label="验证码" prop="securityCode">
+                    <el-input type="text" autocomplete="off" v-model="loginForm.securityCode"></el-input>
+                    <canvas id="canvas" width="100" height="30"></canvas>
+                </el-form-item>
+                <el-form-item label="生成的验证码" prop="realValid" hidden="hidden">
+                    <el-input id="valid" type="text" autocomplete="off" v-model="loginForm.realValid"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="loginCheck('loginForm')">登录</el-button>
+                    <el-button @click="reset">重置</el-button>
+                </el-form-item>
+            </el-form>
+        </el-main>
+        <el-footer>Footer</el-footer>
+    </el-container>
+</div>
+</body>
+</html>
+
+<!--引入vue-->
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.12/vue.js"></script>
+<!-- 引入element组件库 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.0/index.js"></script>
+<!--引入axios-->
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<!--引入外部js-->
+<script src="./js/login.js"></script>
+
+
+<script>
+    (function () {
+
+        window.onclick = function (event) {
+
+            var heart = document.createElement("b");
+
+            heart.onselectstart = new Function('event.returnValue=false');
+
+            document.body.appendChild(heart).innerHTML = "🙀";
+
+            heart.style.cssText = "position: fixed;left:-100%;";
+
+            var f = 16, // 字体大小
+                x = event.clientX - f / 2, // 横坐标
+                y = event.clientY - f, // 纵坐标
+                c = randomColor(), // 随机颜色
+                a = 1, // 透明度
+                s = 2.2; // 放大缩小
+
+            var timer = setInterval(function () {
+
+                if (a <= 0) {
+
+                    document.body.removeChild(heart);
+
+                    clearInterval(timer);
+
+                } else {
+
+                    heart.style.cssText = "font-size:16px;cursor: default;position: fixed;color:" + c + ";left:" + x + "px;top:" + y + "px;opacity:" + a + ";transform:scale(" + s + ");";
+
+                    y--;
+                    a -= 0.016;
+                    s += 0.002;
+
+                }
+
+            }, 12)
+
+        }
+
+        // 随机颜色
+        function randomColor() {
+
+            return "rgb(" + (~~(Math.random() * 255)) + "," + (~~(Math.random() * 255)) + "," + (~~(Math.random() * 255)) + ")";
+
+        }
+
+    }())
+</script>
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+<script>
+    $(function () {
+        var show_num = [];
+        draw(show_num);
+        $("#canvas").on('click', function () {
+            draw(show_num);
+        })
+    })
+
+    //生成并渲染出验证码图形
+    function draw(show_num) {
+        var canvas_width = $('#canvas').width();
+        var canvas_height = $('#canvas').height();
+        var canvas = document.getElementById("canvas");//获取到canvas的对象，演员
+        var context = canvas.getContext("2d");//获取到canvas画图的环境，演员表演的舞台
+        canvas.width = canvas_width;
+        canvas.height = canvas_height;
+        var sCode = "a,b,c,d,e,f,g,h,i,j,k,m,n,p,q,r,s,t,u,v,w,x,y,z,A,B,C,E,F,G,H,J,K,L,M,N,P,Q,R,S,T,W,X,Y,Z,1,2,3,4,5,6,7,8,9,0";
+        var aCode = sCode.split(",");
+        var aLength = aCode.length;//获取到数组的长度
+        for (var i = 0; i < 4; i++) { //这里的for循环可以控制验证码位数（如果想显示6位数，4改成6即可）
+            var j = Math.floor(Math.random() * aLength);//获取到随机的索引值
+            // var deg = Math.random() * 30 * Math.PI / 180;//产生0~30之间的随机弧度
+            var deg = Math.random() - 0.5; //产生一个随机弧度
+            var txt = aCode[j];//得到随机的一个内容
+            show_num[i] = txt.toLowerCase();
+            var x = 10 + i * 20;//文字在canvas上的x坐标
+            var y = 20 + Math.random() * 8;//文字在canvas上的y坐标
+            context.font = "bold 23px 微软雅黑";
+            context.translate(x, y);
+            context.rotate(deg);
+            context.fillStyle = randomColor();
+            context.fillText(txt, 0, 0);
+            context.rotate(-deg);
+            context.translate(-x, -y);
+        }
+        for (var i = 0; i <= 5; i++) { //验证码上显示线条
+            context.strokeStyle = randomColor();
+            context.beginPath();
+            context.moveTo(Math.random() * canvas_width, Math.random() * canvas_height);
+            context.lineTo(Math.random() * canvas_width, Math.random() * canvas_height);
+            context.stroke();
+        }
+        for (var i = 0; i <= 30; i++) { //验证码上显示小点
+            context.strokeStyle = randomColor();
+            context.beginPath();
+            var x = Math.random() * canvas_width;
+            var y = Math.random() * canvas_height;
+            context.moveTo(x, y);
+            context.lineTo(x + 1, y + 1);
+            context.stroke();
+        }
+        $('#valid').val(show_num);
+    }
+
+    //得到随机的颜色值
+    function randomColor() {
+        var r = Math.floor(Math.random() * 256);
+        var g = Math.floor(Math.random() * 256);
+        var b = Math.floor(Math.random() * 256);
+        return "rgb(" + r + "," + g + "," + b + ")";
+    }
+</script>

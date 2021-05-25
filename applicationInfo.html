@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>申请记录</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <!-- 引入element样式 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.0/theme-chalk/index.css" rel="stylesheet"/>
+    <!--引入外部样式-->
+    <link rel="stylesheet" href="./css/applicationInfo.css"/>
+</head>
+<body>
+<div id="infoApp">
+    <el-container>
+        <el-header>
+
+            <el-row :gutter="20">
+                <el-col :span="20"><div class="grid-content bg-purple">数据管理</div></el-col>
+                <el-col :span="4"><div class="grid-content bg-purple">你好, {{userName}}
+                    <el-button type="danger" size="mini" @click="quit">退出</el-button>
+                </div></el-col>
+            </el-row>
+
+        </el-header>
+        <el-container>
+            <el-aside width="200px">
+
+                <!--导航菜单-->
+                <el-menu
+                        default-active="2"
+                        class="el-menu-vertical-demo">
+                    <el-menu-item index="1" @click="jumpToIndex">
+                        <i class="el-icon-s-marketing"></i>
+                        <span slot="title" @click="jumpToIndex">数据表格</span>
+                    </el-menu-item>
+                    <el-menu-item index="2" @click="jumpToApplicationInfo">
+                        <i class="el-icon-s-order"></i>
+                        <span slot="title" @click="jumpToApplicationInfo">申请记录</span>
+                    </el-menu-item>
+                    <el-menu-item index="3" :hidden="isSuperuser" @click="jumpToLog">
+                        <i class="el-icon-info"></i>
+                        <span slot="title" @click="jumpToLog">操作日志</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-aside>
+            <el-container>
+                <el-main>
+
+                    <!--数据表格-->
+                    <el-table
+                            :data="currentPageData"
+                            style="width: 100%">
+                        <el-table-column prop="id" label="ID" width="50"></el-table-column>
+                        <el-table-column prop="applyTime" label="申请时间" width="160"></el-table-column>
+                        <el-table-column prop="agreeTime" label="审批时间" width="160"></el-table-column>
+                        <el-table-column prop="userName" label="申请人" width="90"></el-table-column>
+                        <el-table-column prop="department" label="来源部门" width="90"></el-table-column>
+                        <el-table-column prop="attribute" label="属性" width="80"></el-table-column>
+                        <el-table-column prop="qualityLevel" label="质量级别" width="80"></el-table-column>
+                        <el-table-column prop="orderCount" label="曾经使用" width="80"></el-table-column>
+                        <el-table-column prop="phoneCount" label="号码数量" width="80"></el-table-column>
+                        <el-table-column prop="lastUsedTime" label="时间区间"></el-table-column>
+                        <el-table-column prop="limit" label="数量限制" width="80"></el-table-column>
+                        <el-table-column prop="commons" label="说明" width="150"></el-table-column>
+                        <el-table-column prop="applicationStatus" label="申请结果" width="100">
+                            <template slot-scope="scope">
+                                <el-tag :type="scope.row.applicationStatus === '等待审批' ? 'primary' : scope.row.applicationStatus === '审批失败' ? 'danger' : 'success'">{{scope.row.applicationStatus}}</el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="操作" width="90">
+                            <template slot-scope="scope">
+                                <el-button
+                                        size="mini"
+                                        round="true"
+                                        :disabled="scope.row.applicationStatus!='审批成功'"
+                                        @click="downloadFromBack(scope.row.userName, scope.row.id)"
+                                        >下载</el-button>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="审批" width="100" v-if="isSuperuser!=1">
+                            <template slot-scope="scope">
+                                <el-button
+                                        size="mini"
+                                        type="success"
+                                        icon="el-icon-check"
+                                        circle
+                                        :disabled="scope.row.applicationStatus!='等待审批'"
+                                        @click="applicationCheckToBack(scope.row.id, scope.row.department, scope.row.qualityLevel, scope.row.attribute, scope.row.orderCount, '1', scope.row.userName, scope.row.lastUsedTime, scope.row.limit)"
+                                ></el-button>
+                                <el-button
+                                        size="mini"
+                                        type="danger"
+                                        icon="el-icon-close"
+                                        circle
+                                        :disabled="scope.row.applicationStatus!='等待审批'"
+                                        @click="applicationCheckToBack(scope.row.id, scope.row.department, scope.row.qualityLevel, scope.row.attribute, scope.row.orderCount, '0', scope.row.userName, scope.row.lastUsedTime, scope.row.limit)"
+                                ></el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+
+                    <!--分页器-->
+                    <el-pagination
+                            style="margin-left: 100px; margin-top: 10px;"
+                            background
+                            layout="prev, pager, next"
+                            :page-size="pagesize"
+                            :current-page="currentpage"
+                            :total="total"
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange">
+                    </el-pagination>
+                </el-main>
+                <el-footer>数据管理平台</el-footer>
+            </el-container>
+        </el-container>
+    </el-container>
+</div>
+</body>
+</html>
+
+
+<!--引入vue-->
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.12/vue.js"></script>
+<!-- 引入element组件库 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.0/index.js"></script>
+<!--引入axios-->
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<!--引入外部js-->
+<script src="./js/applicationInfo.js"></script>

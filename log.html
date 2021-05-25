@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>操作日志</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <!-- 引入element样式 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.0/theme-chalk/index.css" rel="stylesheet"/>
+    <!--引入外部样式-->
+    <link rel="stylesheet" href="./css/log.css"/>
+</head>
+<body>
+<div id="logApp">
+    <el-container>
+        <el-header>
+
+            <el-row :gutter="20">
+                <el-col :span="20"><div class="grid-content bg-purple">操作日志</div></el-col>
+                <el-col :span="4"><div class="grid-content bg-purple">你好, {{userName}}
+                    <el-button type="danger" size="mini" @click="quit">退出</el-button>
+                </div></el-col>
+            </el-row>
+
+        </el-header>
+        <el-container>
+            <el-aside width="200px">
+
+                <!--导航菜单-->
+                <el-menu
+                        default-active="3"
+                        class="el-menu-vertical-demo">
+                    <el-menu-item index="1" @click="jumpToIndex">
+                        <i class="el-icon-s-marketing"></i>
+                        <span slot="title" @click="jumpToIndex">数据表格</span>
+                    </el-menu-item>
+                    <el-menu-item index="2" @click="jumpToApplicationInfo">
+                        <i class="el-icon-s-order"></i>
+                        <span slot="title" @click="jumpToApplicationInfo">申请记录</span>
+                    </el-menu-item>
+                    <el-menu-item index="3" :hidden="isSuperuser" @click="jumpToLog">
+                        <i class="el-icon-info"></i>
+                        <span slot="title" @click="jumpToLog">操作日志</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-aside>
+            <el-container>
+                <el-main>
+
+                    <!--查询表单-->
+                    <el-form :inline="true" :model="formData" class="demo-form-inline">
+                        <el-form-item label="操作员工">
+                            <el-input v-model="formData.operationName" placeholder="操作员工"></el-input>
+                        </el-form-item>
+                        <el-form-item label="IP">
+                            <el-input v-model="formData.ip" placeholder="IP"></el-input>
+                        </el-form-item>
+                        <el-form-item label="创建时间">
+                            <el-date-picker type="date" placeholder="选择日期" v-model="formData.createTime" style="width: 100%;"></el-date-picker>
+                        </el-form-item>
+                        <el-form-item label="操作">
+                            <el-select v-model="formData.operation" placeholder="不选择">
+                                <el-option label="不选择" value=""></el-option>
+                                <el-option label="查询" value="查询"></el-option>
+                                <el-option label="登录" value="登录"></el-option>
+                                <el-option label="申请" value="申请"></el-option>
+                                <el-option label="审批" value="审批"></el-option>
+                                <el-option label="日志" value="日志"></el-option>
+                                <el-option label="下载" value="下载"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="参数|结果|说明">
+                            <el-input v-model="formData.parameter" placeholder="参数|结果|说明"></el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" @click="getQueryDataFromBack">查询</el-button>
+                        </el-form-item>
+                    </el-form>
+
+                    <!--数据表格-->
+                    <el-table
+                            :data="currentPageData"
+                            style="width: 100%"
+                            :row-class-name="tableRowClassName">
+                        <el-table-column
+                                prop="id"
+                                label="ID"
+                                width="80">
+                        </el-table-column>
+                        <el-table-column
+                                prop="userName"
+                                label="员工"
+                                width="150">
+                        </el-table-column>
+                        <el-table-column
+                                prop="ip"
+                                label="IP"
+                                width="150">
+                        </el-table-column>
+                        <el-table-column
+                                prop="createTime"
+                                label="发生时间"
+                                width="180">
+                        </el-table-column>
+                        <el-table-column
+                                prop="api"
+                                label="访问接口"
+                                width="200">
+                        </el-table-column>
+                        <el-table-column
+                                prop="operation"
+                                label="操作"
+                                width="120">
+                        </el-table-column>
+                        <el-table-column
+                                prop="parameter"
+                                label="记录">
+                        </el-table-column>
+                    </el-table>
+
+                    <!--分页器-->
+                    <el-pagination
+                            style="margin-left: 100px;"
+                            background
+                            layout="prev, pager, next"
+                            :page-size="pagesize"
+                            :current-page="currentpage"
+                            :total="total"
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange">
+                    </el-pagination>
+                </el-main>
+                <el-footer>数据管理平台</el-footer>
+            </el-container>
+        </el-container>
+    </el-container>
+</div>
+</body>
+</html>
+
+<!--引入vue-->
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.12/vue.js"></script>
+<!-- 引入element组件库 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.13.0/index.js"></script>
+<!--引入axios-->
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<!--引入外部js-->
+<script src="./js/log.js"></script>
